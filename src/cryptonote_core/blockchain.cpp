@@ -90,10 +90,10 @@ static const struct {
   time_t time;
 } mainnet_hard_forks[] = {
   // version 1 from the start of the blockchain
-    { 1, 1, 0, 1 },
+    { 1, 1, 0, 1520965547 },
 
   // version 2 starts from block 3000.
-  { 2, 3000, 0, 1 },
+  { 2, 3000, 0, 1522235573 },
   
 };
 static const uint64_t mainnet_hard_fork_version_1_till = 2999;
@@ -105,10 +105,10 @@ static const struct {
   time_t time;
 } testnet_hard_forks[] = {
   // version 1 from the start of the blockchain
-    { 1, 1, 0, 1 },
+    { 1, 1, 0, 1520965547 },
 
   // version 2 starts from block 3000.
-  { 2, 3000, 0, 1 },
+  { 2, 3000, 0, 1522235573 },
 };
 static const uint64_t testnet_hard_fork_version_1_till = 2999;
 
@@ -4337,7 +4337,7 @@ void Blockchain::cancel()
 }
 
 #if defined(PER_BLOCK_CHECKPOINT)
-static const char expected_block_hashes_hash[] = "4b553162ee4e7af3c53666506591489c68560b9175e6e941dc96c89f96f0e35c";
+static const char expected_block_hashes_hash[] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 void Blockchain::load_compiled_in_block_hashes()
 {
   const bool testnet = m_nettype == TESTNET;
