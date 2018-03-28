@@ -41,7 +41,7 @@
 #define CRYPTONOTE_MAX_TX_SIZE                          1000000000
 #define CRYPTONOTE_PUBLIC_ADDRESS_TEXTBLOB_VER          0
 #define CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW            60
-#define CURRENT_TRANSACTION_VERSION                     1
+#define CURRENT_TRANSACTION_VERSION                     2
 #define CURRENT_BLOCK_MAJOR_VERSION                     1
 #define CURRENT_BLOCK_MINOR_VERSION                     0
 #define CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT              60*60*2
@@ -63,18 +63,18 @@
 // COIN - number of smallest units in one coin
 #define COIN                                            ((uint64_t)1000000000000) // pow(10, 12)
 
-#define FEE_PER_KB_OLD                                  ((uint64_t)10000000) // pow(10, 10)
-#define FEE_PER_KB                                      ((uint64_t)20000000) // 2 * pow(10, 9)
-#define DYNAMIC_FEE_PER_KB_BASE_FEE                     ((uint64_t)20000000) // 2 * pow(10,9)
-#define DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD            ((uint64_t)100000000000) // 10 * pow(10,12)
-#define DYNAMIC_FEE_PER_KB_BASE_FEE_V5                  ((uint64_t)20000000 * (uint64_t)CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2 / CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V5)
+#define FEE_PER_KB_OLD                                  ((uint64_t)10000000000) // pow(10, 10)
+#define FEE_PER_KB                                      ((uint64_t)2000000000) // 2 * pow(10, 9)
+#define DYNAMIC_FEE_PER_KB_BASE_FEE                     ((uint64_t)2000000000) // 2 * pow(10,9)
+#define DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD            ((uint64_t)10000000000000) // 10 * pow(10,12)
+#define DYNAMIC_FEE_PER_KB_BASE_FEE_V5                  ((uint64_t)2000000000 * (uint64_t)CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2 / CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V5)
 
 #define ORPHANED_BLOCKS_MAX_COUNT                       100
 
 
-#define DIFFICULTY_TARGET_V2                            430  // seconds
-#define DIFFICULTY_TARGET_V1                            430  // seconds - before first fork
-#define DIFFICULTY_WINDOW                               201 // blocks
+#define DIFFICULTY_TARGET_V2                            420  // seconds
+#define DIFFICULTY_TARGET_V1                            420  // seconds - before first fork
+#define DIFFICULTY_WINDOW                               720  // blocks
 #define DIFFICULTY_LAG                                  15  // !!!
 #define DIFFICULTY_CUT                                  60  // timestamps to cut after sorting
 #define DIFFICULTY_BLOCKS_COUNT                         DIFFICULTY_WINDOW + DIFFICULTY_LAG
@@ -145,7 +145,7 @@
 // New constants are intended to go here
 namespace config
 {
-  uint64_t const DEFAULT_FEE_ATOMIC_ITC_PER_KB = 50; // Just a placeholder!  Change me!
+  uint64_t const DEFAULT_FEE_ATOMIC_ITA_PER_KB = 500; // Just a placeholder!  Change me!
   uint8_t const FEE_CALCULATION_MAX_RETRIES = 10;
   uint64_t const DEFAULT_DUST_THRESHOLD = ((uint64_t)2000000000); // 2 * pow(10, 9)
   uint64_t const BASE_REWARD_CLAMP_THRESHOLD = ((uint64_t)100000000); // pow(10, 8)
