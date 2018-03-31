@@ -94,6 +94,8 @@ static const struct {
 
   // version 2 starts from block 3000.
   { 2, 3000, 0, 1522235573 },
+  // version 7 starts from block 5000. Around 4 or 5 of April
+  { 7, 5000, 0, 1522800000 },
   
 };
 static const uint64_t mainnet_hard_fork_version_1_till = 2999;
@@ -108,9 +110,9 @@ static const struct {
     { 1, 1, 0, 1520965547 },
 
   // version 2 starts from block 3000.
-  { 2, 3000, 0, 1522235573 },
+  { 7, 6, 0, 1522235573 },
 };
-static const uint64_t testnet_hard_fork_version_1_till = 2999;
+static const uint64_t testnet_hard_fork_version_1_till = 5;
 
 static const struct {
   uint8_t version;
