@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018, The Monero And Italocoin Project
+// Copyright (c) 2018, The Italocoin And Monero Project
 // 
 // All rights reserved.
 // 
@@ -58,7 +58,16 @@ namespace hw {
 
             bool connect(void) override;
             bool disconnect() override;
+ 
+            bool set_mode(device_mode mode) override;
 
+            /* ======================================================================= */
+            /*  LOCKER                                                                 */
+            /* ======================================================================= */ 
+            void lock(void)  override;
+            void unlock(void) override;
+            bool try_lock(void) override;
+            
             /* ======================================================================= */
             /*                             WALLET & ADDRESS                            */
             /* ======================================================================= */
@@ -97,9 +106,6 @@ namespace hw {
 
             bool  open_tx(crypto::secret_key &tx_key) override;
 
-            //bool  get_additional_key(const bool subaddr, cryptonote::keypair &additional_txkey) override;
-            bool  set_signature_mode(unsigned int sig_mode) override;
-
             bool  encrypt_payment_id(crypto::hash8 &payment_id, const crypto::public_key &public_key, const crypto::secret_key &secret_key) override;
 
             bool  ecdhEncode(rct::ecdhTuple & unmasked, const rct::key & sharedSec) override;
@@ -123,4 +129,3 @@ namespace hw {
 
 
 }
-
