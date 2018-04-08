@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Monero And Italocoin Project
+// Copyright (c) 2018, The Monero And Italocoin Project
 //
 // All rights reserved.
 //
@@ -81,7 +81,7 @@ namespace cryptonote
   , "Specify data directory"
   , tools::get_default_data_dir()
   , {{ &arg_testnet_on, &arg_stagenet_on }}
-  , [](std::array<bool, 2> testnet_stagenet, bool defaulted, std::string val) {
+  , [](std::array<bool, 2> testnet_stagenet, bool defaulted, std::string val)->std::string {
       if (testnet_stagenet[0])
         return (boost::filesystem::path(val) / "testnet").string();
       else if (testnet_stagenet[1])
