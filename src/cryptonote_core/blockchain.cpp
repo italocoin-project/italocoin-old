@@ -112,9 +112,9 @@ static const struct {
     { 1, 1, 0, 1520965547 },
 
   // version 2 starts from block 3000.
-  { 7, 6, 0, 1522235573 },
-  { 8, 10, 0, 1523198945 },
-  { 9, 2350, 0, 1523198945 },
+  { 7, 2, 0, 1522235573 },
+  { 8, 3, 0, 1523198945 },
+  { 9, 4, 0, 1523198946 },
 };
 static const uint64_t testnet_hard_fork_version_1_till = 5;
 
@@ -734,7 +734,7 @@ difficulty_type Blockchain::get_difficulty_for_next_block()
   std::vector<difficulty_type> difficulties;
   auto height = m_db->height(); 
  size_t difficulty_blocks_count;
- if (get_current_hard_fork_version() > 7 && get_current_hard_fork_version() < 9){
+ if (get_current_hard_fork_version() > 7 && get_current_hard_fork_version() < 8){
   difficulty_blocks_count = DIFFICULTY_BLOCKS_COUNT_V1;
  }else if(get_current_hard_fork_version() > 9){
   difficulty_blocks_count = DIFFICULTY_BLOCKS_COUNT_V7;
@@ -781,9 +781,9 @@ difficulty_type Blockchain::get_difficulty_for_next_block()
   }
   size_t target = get_difficulty_target();
 
-if (get_current_hard_fork_version() > 7 && get_current_hard_fork_version() < 9){
+if (get_current_hard_fork_version() > 7 && get_current_hard_fork_version() < 8){
  return next_difficulty_v2(timestamps, difficulties, target);
- }else if(get_current_hard_fork_version() > 9){
+ }else if(get_current_hard_fork_version() >= 9){
  return next_difficulty_v7(timestamps, difficulties, target);;
  }else{
  return next_difficulty(timestamps, difficulties, target);	 
@@ -938,7 +938,7 @@ difficulty_type Blockchain::get_next_difficulty_for_alternative_chain(const std:
  size_t difficulty_blocks_count;
   // if the alt chain isn't long enough to calculate the difficulty target
   // based on its blocks alone, need to get more blocks from the main chain
-  if (get_ideal_hard_fork_version(bei.height) > 7 && get_ideal_hard_fork_version(bei.height) < 9){
+  if (get_ideal_hard_fork_version(bei.height) > 7 && get_ideal_hard_fork_version(bei.height) < 8){
   difficulty_blocks_count = DIFFICULTY_BLOCKS_COUNT_V1;
  }else if(get_ideal_hard_fork_version(bei.height) > 9){
   difficulty_blocks_count = DIFFICULTY_BLOCKS_COUNT_V7;
@@ -997,7 +997,7 @@ difficulty_type Blockchain::get_next_difficulty_for_alternative_chain(const std:
   // FIXME: This will fail if fork activation heights are subject to voting
   size_t target = get_ideal_hard_fork_version(bei.height) < 2 ? DIFFICULTY_TARGET_V1 : DIFFICULTY_TARGET_V2;
   // calculate the difficulty target for the block and return it
- if (get_ideal_hard_fork_version(bei.height) > 7 && get_ideal_hard_fork_version(bei.height) < 9){
+ if (get_ideal_hard_fork_version(bei.height) > 7 && get_ideal_hard_fork_version(bei.height) < 8){
  return next_difficulty_v2(timestamps, cumulative_difficulties, target);
  }else if(get_ideal_hard_fork_version(bei.height) > 9){
  return next_difficulty_v7(timestamps, cumulative_difficulties, target);;
