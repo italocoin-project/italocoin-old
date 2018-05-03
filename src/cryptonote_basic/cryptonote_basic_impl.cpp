@@ -87,8 +87,9 @@ namespace cryptonote {
   }
   //-----------------------------------------------------------------------------------------------
   bool get_block_reward(size_t median_size, size_t current_block_size, uint64_t already_generated_coins, uint64_t &reward, uint8_t version) {
-    static_assert(DIFFICULTY_TARGET_V2%180==0&&DIFFICULTY_TARGET_V1%430==0,"difficulty targets must be a multiple V1 of 86 and V2 of 60");
-    const int target = version < 2 ? DIFFICULTY_TARGET_V1 : DIFFICULTY_TARGET_V2;
+    static_assert(DIFFICULTY_TARGET_V2%180==0&&DIFFICULTY_TARGET_V1%430==0&&DIFFICULTY_TARGET_V9%120==0,"difficulty targets must be a multiple V1 of 430 and V2 of 180 And V9 of 120");
+
+	const int target = version < 2 ? DIFFICULTY_TARGET_V1 : DIFFICULTY_TARGET_V2;
     const int target_minutes = version < 2 ? target / 430 : target / 180;
     const int emission_speed_factor = EMISSION_SPEED_FACTOR_PER_MINUTE - (target_minutes-1);
 

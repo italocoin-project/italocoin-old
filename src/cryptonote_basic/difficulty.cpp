@@ -202,13 +202,7 @@ difficulty_type next_difficulty_v2(std::vector<std::uint64_t> timestamps, std::v
       return 0;
     }
 	//return (low + time_span - 1) / time_span;
-if (time_span >= 1480) {
-uint64_t valueInString = (low + time_span - 1) / time_span;
-uint64_t val = valueInString - (valueInString * .99);
-return val;
-	}else{
-		return (low + time_span - 1) / time_span;
-	}
+return (low + time_span - 1) / time_span;
   }
    difficulty_type next_difficulty_v7(std::vector<std::uint64_t> timestamps, std::vector<difficulty_type> cumulative_difficulties, size_t target_seconds) {
 

@@ -734,12 +734,11 @@ difficulty_type Blockchain::get_difficulty_for_next_block()
   std::vector<difficulty_type> difficulties;
   auto height = m_db->height(); 
  size_t difficulty_blocks_count;
- if (get_current_hard_fork_version() > 7 && get_current_hard_fork_version() < 8){
+ difficulty_blocks_count = DIFFICULTY_BLOCKS_COUNT;
+ if (get_current_hard_fork_version() >= 7 && get_current_hard_fork_version() <= 8){
   difficulty_blocks_count = DIFFICULTY_BLOCKS_COUNT_V1;
- }else if(get_current_hard_fork_version() > 9){
+ }else if(get_current_hard_fork_version() >= 9){
   difficulty_blocks_count = DIFFICULTY_BLOCKS_COUNT_V7;
- }else{
-  difficulty_blocks_count = DIFFICULTY_BLOCKS_COUNT;	 
  }
   // ND: Speedup
   // 1. Keep a list of the last 735 (or less) blocks that is used to compute difficulty,
@@ -781,10 +780,10 @@ difficulty_type Blockchain::get_difficulty_for_next_block()
   }
   size_t target = get_difficulty_target();
 
-if (get_current_hard_fork_version() > 7 && get_current_hard_fork_version() < 8){
+if (get_current_hard_fork_version() >= 7 && get_current_hard_fork_version() <= 8){
  return next_difficulty_v2(timestamps, difficulties, target);
  }else if(get_current_hard_fork_version() >= 9){
- return next_difficulty_v7(timestamps, difficulties, target);;
+ return next_difficulty_v7(timestamps, difficulties, target);
  }else{
  return next_difficulty(timestamps, difficulties, target);	 
  }
@@ -938,12 +937,11 @@ difficulty_type Blockchain::get_next_difficulty_for_alternative_chain(const std:
  size_t difficulty_blocks_count;
   // if the alt chain isn't long enough to calculate the difficulty target
   // based on its blocks alone, need to get more blocks from the main chain
-  if (get_ideal_hard_fork_version(bei.height) > 7 && get_ideal_hard_fork_version(bei.height) < 8){
+ difficulty_blocks_count = DIFFICULTY_BLOCKS_COUNT;	
+ if (get_ideal_hard_fork_version(bei.height) >= 7 && get_ideal_hard_fork_version(bei.height) <= 8){
   difficulty_blocks_count = DIFFICULTY_BLOCKS_COUNT_V1;
- }else if(get_ideal_hard_fork_version(bei.height) > 9){
+ }else if(get_ideal_hard_fork_version(bei.height) >= 9){
   difficulty_blocks_count = DIFFICULTY_BLOCKS_COUNT_V7;
- }else{
-  difficulty_blocks_count = DIFFICULTY_BLOCKS_COUNT;	 
  }
   
   if(alt_chain.size() < difficulty_blocks_count)
@@ -995,12 +993,18 @@ difficulty_type Blockchain::get_next_difficulty_for_alternative_chain(const std:
   }
 
   // FIXME: This will fail if fork activation heights are subject to voting
-  size_t target = get_ideal_hard_fork_version(bei.height) < 2 ? DIFFICULTY_TARGET_V1 : DIFFICULTY_TARGET_V2;
+ size_t target;
+  target = DIFFICULTY_TARGET_V1;
+ if (get_ideal_hard_fork_version(bei.height) >= 7 && get_ideal_hard_fork_version(bei.height) <= 8){
+  target = DIFFICULTY_TARGET_V2;
+ }else if(get_ideal_hard_fork_version(bei.height) >= 9){
+  target = DIFFICULTY_TARGET_V9;
+ }
   // calculate the difficulty target for the block and return it
- if (get_ideal_hard_fork_version(bei.height) > 7 && get_ideal_hard_fork_version(bei.height) < 8){
+ if (get_ideal_hard_fork_version(bei.height) >= 7 && get_ideal_hard_fork_version(bei.height) <= 8){
  return next_difficulty_v2(timestamps, cumulative_difficulties, target);
- }else if(get_ideal_hard_fork_version(bei.height) > 9){
- return next_difficulty_v7(timestamps, cumulative_difficulties, target);;
+ }else if(get_ideal_hard_fork_version(bei.height) >= 9){
+ return next_difficulty_v7(timestamps, cumulative_difficulties, target);
  }else{
  return next_difficulty(timestamps, cumulative_difficulties, target);	 
  }
@@ -4329,7 +4333,12 @@ bool Blockchain::get_hard_fork_voting_info(uint8_t version, uint32_t &window, ui
 
 uint64_t Blockchain::get_difficulty_target() const
 {
-  return get_current_hard_fork_version() < 2 ? DIFFICULTY_TARGET_V1 : DIFFICULTY_TARGET_V2;
+ if (get_current_hard_fork_version() >= 7 && get_current_hard_fork_version() <= 8){
+ return DIFFICULTY_TARGET_V2;
+ }else if(get_current_hard_fork_version() >= 9){
+  return  DIFFICULTY_TARGET_V9;
+ }
+ return DIFFICULTY_TARGET_V1;
 }
 
 std::map<uint64_t, std::tuple<uint64_t, uint64_t, uint64_t>> Blockchain:: get_output_histogram(const std::vector<uint64_t> &amounts, bool unlocked, uint64_t recent_cutoff) const
