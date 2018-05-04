@@ -65,7 +65,8 @@ namespace cryptonote
                                                                                                               m_p2p(p_net_layout),
                                                                                                               m_syncronized_connections_count(0),
                                                                                                               m_synchronized(offline),
-                                                                                                              m_stopping(false)
+                                                                                                              m_stopping(false),
+                                                                                                              m_initial_popping(true)
 
   {
     if(!m_p2p)
@@ -259,6 +260,9 @@ namespace cryptonote
   template<class t_core>
   bool t_cryptonote_protocol_handler<t_core>::process_payload_sync_data(const CORE_SYNC_DATA& hshd, cryptonote_connection_context& context, bool is_inital)
   {
+    if (m_initial_popping)
+      return true;
+
     if(context.m_state == cryptonote_connection_context::state_before_handshake && !is_inital)
       return true;
 
@@ -972,6 +976,8 @@ skip:
   template<class t_core>
   int t_cryptonote_protocol_handler<t_core>::try_add_next_blocks(cryptonote_connection_context& context)
   {
+    if (m_initial_popping)
+    return 1;
     bool force_next_span = false;
 
     {
@@ -1191,6 +1197,37 @@ skip:
   bool t_cryptonote_protocol_handler<t_core>::on_idle()
   {
     m_idle_peer_kicker.do_call(boost::bind(&t_cryptonote_protocol_handler<t_core>::kick_idle_peers, this));
+	static uint64_t num_popped_blocks = 0;
+    if (m_initial_popping)
+    {
+      while (!m_stopping)
+      {
+        uint64_t top_height;
+        crypto::hash top_id;
+        m_core.get_blockchain_top(top_height, top_id);
+        bool orphan;
+        block top_block;
+        m_core.get_block_by_hash(top_id, top_block, &orphan);
+        const uint64_t ideal_hf_version = m_core.get_ideal_hard_fork_version(top_height);
+        if (ideal_hf_version <= 1 || ideal_hf_version == top_block.major_version)
+        {
+          m_initial_popping = false;
+          MGINFO("Initial popping done, top block: " << top_id << ", top height: " << top_height << ", block version: " << (uint64_t)top_block.major_version);
+          break;
+        }
+        else
+        {
+          if (num_popped_blocks == 0)
+            MGINFO("Current top block " << top_id << " at height " << top_height << " has version " << (uint64_t)top_block.major_version << " which disagrees with the ideal version " << ideal_hf_version);
+          if (num_popped_blocks % 100 == 0)
+            MGINFO("Popping blocks... " << top_height);
+          ++num_popped_blocks;
+          block popped_block;
+          std::vector<transaction> popped_txs;
+          m_core.get_blockchain_storage().get_db().pop_block(popped_block, popped_txs);
+        }
+      }
+    }
     return m_core.on_idle();
   }
   //------------------------------------------------------------------------------------------------------------------------

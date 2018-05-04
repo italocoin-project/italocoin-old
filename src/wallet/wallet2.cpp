@@ -2382,7 +2382,7 @@ bool wallet2::get_output_distribution(uint64_t &start_height, std::vector<uint64
   req.from_height = 0;
   req.cumulative = true;
   m_daemon_rpc_mutex.lock();
-  bool r = net_utils::invoke_http_json_rpc("/json_rpc", "get_output_distribution", req, res, m_http_client, rpc_timeout);
+  bool r = net_utils::invoke_http_json_rpc("/json_rpc", "get_output_distribution", req, res, m_http_client, rpc_timeout * 1000);
   m_daemon_rpc_mutex.unlock();
   if (!r)
   {
