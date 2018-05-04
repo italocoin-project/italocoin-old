@@ -3031,9 +3031,10 @@ bool Blockchain::is_tx_spendtime_unlocked(uint64_t unlock_time) const
   }
   else
   {
-    //interpret as time
+    //interpret as time CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_SECONDS_V9
     uint64_t current_time = static_cast<uint64_t>(time(NULL));
-    if(current_time + (get_current_hard_fork_version() < 2 ? CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_SECONDS_V1 : CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_SECONDS_V2) >= unlock_time)
+	uint64_t shakir = get_current_hard_fork_version() < 2 ? CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_SECONDS_V1 : CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_SECONDS_V2;
+    if(current_time + (get_current_hard_fork_version() <= 8 ? shakir : CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_SECONDS_V9) >= unlock_time)
       return true;
     else
       return false;

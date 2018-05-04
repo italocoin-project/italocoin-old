@@ -77,18 +77,18 @@ namespace crypto {
     if (variant == 0) {
       ctx1.hash(data, length, hash.data);
     } else if (variant == 2){
-	 ctx2.hash(data, length, hash.data);
-	}
+      ctx2.hash(data, length, hash.data);
+    }
   }
 
   inline void cn_slow_hash_prehashed(const void *data, std::size_t length, hash &hash, int variant = 0) {
     static thread_local cn_pow_hash_v1 ctx1;
     static thread_local cn_pow_hash_v2 ctx2;
     if (variant == 0) {
-      ctx1.hash(data, length, hash.data);
+      ctx1.hash(data, length, hash.data, true);
     } else if (variant == 2){
-      ctx2.hash(data, length, hash.data);
-	}
+      ctx2.hash(data, length, hash.data, true);
+    }
   }
 
   inline void tree_hash(const hash *hashes, std::size_t count, hash &root_hash) {
