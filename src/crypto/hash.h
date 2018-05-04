@@ -76,9 +76,7 @@ namespace crypto {
 	static thread_local cn_pow_hash_v2 ctx2;
     if (variant == 0) {
       ctx1.hash(data, length, hash.data);
-    } else if (variant == 1){
-    cn_slow_hash(data, length, reinterpret_cast<char *>(&hash), variant, 0/*prehashed*/);
-    }else{
+    } else if (variant == 2){
 	 ctx2.hash(data, length, hash.data);
 	}
   }
@@ -88,10 +86,8 @@ namespace crypto {
     static thread_local cn_pow_hash_v2 ctx2;
     if (variant == 0) {
       ctx1.hash(data, length, hash.data);
-    } else if (variant == 1){
-      cn_slow_hash(data, length, reinterpret_cast<char *>(&hash), variant, 1/*prehashed*/);
-    }else{
-	 ctx2.hash(data, length, hash.data);
+    } else if (variant == 2){
+      ctx2.hash(data, length, hash.data);
 	}
   }
 
