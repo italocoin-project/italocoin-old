@@ -39,7 +39,6 @@
 #include "hex.h"
 #include "span.h"
 #include "crypto/cn_slow_hash.hpp"
-
 namespace crypto {
 
   extern "C" {
@@ -73,25 +72,27 @@ namespace crypto {
   }
 
   inline void cn_slow_hash(const void *data, std::size_t length, hash &hash, int variant = 0) {
-    static thread_local cn_pow_hash_v2 ctx2;
-    static thread_local cn_pow_hash_v1 ctx1 = cn_pow_hash_v1::make_borrowed(ctx2);
-    if (variant == 0) 
+	static thread_local cn_pow_hash_v2 ctx2;
+	static thread_local cn_pow_hash_v1 ctx1 = cn_pow_hash_v1::make_borrowed(ctx2);
+    if (variant == 0) {
       ctx1.hash(data, length, hash.data);
-    if (variant == 1)
-	  ctx1.hash(data, length, hash.data);
+    } else if (variant == 2){
       ctx2.hash(data, length, hash.data);
-    
+    }else{
+	  cn_slow_hash(data, length, reinterpret_cast<char *>(&hash), variant, 0/*prehashed*/);
+	}
   }
 
   inline void cn_slow_hash_prehashed(const void *data, std::size_t length, hash &hash, int variant = 0) {
     static thread_local cn_pow_hash_v2 ctx2;
-    static thread_local cn_pow_hash_v1 ctx1 = cn_pow_hash_v1::make_borrowed(ctx2);
-    if (variant == 0)
+	static thread_local cn_pow_hash_v1 ctx1 = cn_pow_hash_v1::make_borrowed(ctx2);
+    if (variant == 0) {
       ctx1.hash(data, length, hash.data, true);
-    if (variant == 1)
-	  ctx1.hash(data, length, hash.data, true);
+   } else if (variant == 2){
       ctx2.hash(data, length, hash.data, true);
-    
+    }else{
+	  cn_slow_hash(data, length, reinterpret_cast<char *>(&hash), variant, 1/*prehashed*/);
+	}
   }
 
   inline void tree_hash(const hash *hashes, std::size_t count, hash &root_hash) {

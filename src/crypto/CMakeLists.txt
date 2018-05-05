@@ -44,6 +44,7 @@ set(crypto_sources
   oaes_lib.c
   random.c
   skein.c
+  slow-hash.c
   cn_slow_hash_hard_arm.cpp
   cn_slow_hash_hard_intel.cpp
   cn_slow_hash_soft.cpp
