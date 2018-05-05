@@ -1729,7 +1729,7 @@ namespace cryptonote
     std::map<uint64_t, std::tuple<uint64_t, uint64_t, uint64_t>> histogram;
     try
     {
-      histogram = m_core.get_blockchain_storage().get_output_histogram(req.amounts, req.unlocked, req.recent_cutoff);
+      histogram = m_core.get_blockchain_storage().get_output_histogram(req.amounts, req.unlocked, req.recent_cutoff, req.min_count);
     }
     catch (const std::exception &e)
     {
@@ -2083,12 +2083,12 @@ namespace cryptonote
   //------------------------------------------------------------------------------------------------------------------------------
   bool core_rpc_server::on_get_output_distribution(const COMMAND_RPC_GET_OUTPUT_DISTRIBUTION::request& req, COMMAND_RPC_GET_OUTPUT_DISTRIBUTION::response& res, epee::json_rpc::error& error_resp)
   {
-	  PERF_TIMER(on_get_output_distribution);
+    PERF_TIMER(on_get_output_distribution);
     try
     {
       for (uint64_t amount: req.amounts)
       {
-		  static struct D
+        static struct D
         {
           boost::mutex mutex;
           std::vector<uint64_t> cached_distribution;
@@ -2112,7 +2112,7 @@ namespace cryptonote
           error_resp.message = "Failed to get rct distribution";
           return false;
         }
-		if (req.to_height > 0 && req.to_height >= req.from_height)
+        if (req.to_height > 0 && req.to_height >= req.from_height)
         {
           uint64_t offset = std::max(req.from_height, start_height);
           if (offset <= req.to_height && req.to_height - offset + 1 < distribution.size())
@@ -2124,7 +2124,8 @@ namespace cryptonote
           for (size_t n = 1; n < distribution.size(); ++n)
             distribution[n] += distribution[n-1];
         }
-		if (amount == 0)
+
+        if (amount == 0)
         {
           d.cached_from = req.from_height;
           d.cached_to = req.to_height;
@@ -2133,6 +2134,7 @@ namespace cryptonote
           d.cached_base = base;
           d.cached = true;
         }
+
         res.distributions.push_back({amount, start_height, std::move(distribution), base});
       }
     }

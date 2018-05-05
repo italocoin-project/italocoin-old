@@ -2203,7 +2203,7 @@ void wallet2::refresh(uint64_t start_height, uint64_t & blocks_fetched, bool& re
     // Get basic info
     if(light_wallet_get_address_info(res)) {
       // Last stored block height
-      uint64_t prev_height = m_light_wallet_blockchain_height;
+      uint64_t prev_height = m_light_wallet_blockchain_height;//remember balance 0
       // Update lw heights
       m_light_wallet_scanned_block_height = res.scanned_block_height;
       m_light_wallet_blockchain_height = res.blockchain_height;
@@ -2421,7 +2421,7 @@ void wallet2::detach_blockchain(uint64_t height)
   // size  1 2 3 4 5 6 7 8 9
   // block 0 1 2 3 4 5 6 7 8
   //               C
-  THROW_WALLET_EXCEPTION_IF(height <= m_checkpoints.get_max_height() && m_blockchain.size() > m_checkpoints.get_max_height(),
+  THROW_WALLET_EXCEPTION_IF(height < m_blockchain.offset() && m_blockchain.size() > m_blockchain.offset(),
       error::wallet_internal_error, "Daemon claims reorg below last checkpoint");
 
   size_t transfers_detached = 0;
@@ -3875,6 +3875,9 @@ void wallet2::load(const std::string& wallet_, const epee::wipeable_string& pass
 void wallet2::trim_hashchain()
 {
   uint64_t height = m_checkpoints.get_max_height();
+  for (const transfer_details &td: m_transfers)
+    if (td.m_block_height < height)
+      height = td.m_block_height;
   if (!m_blockchain.empty() && m_blockchain.size() == m_blockchain.offset())
   {
     MINFO("Fixing empty hashchain");
@@ -8135,6 +8138,7 @@ std::vector<size_t> wallet2::select_available_outputs_from_histogram(uint64_t co
   req_t.min_count = count;
   req_t.max_count = 0;
   req_t.unlocked = unlocked;
+  req_t.recent_cutoff = 0;
   bool r = net_utils::invoke_http_json_rpc("/json_rpc", "get_output_histogram", req_t, resp_t, m_http_client, rpc_timeout);
   m_daemon_rpc_mutex.unlock();
   THROW_WALLET_EXCEPTION_IF(!r, error::no_connection_to_daemon, "select_available_outputs_from_histogram");
@@ -8171,6 +8175,8 @@ uint64_t wallet2::get_num_rct_outputs()
   req_t.amounts.push_back(0);
   req_t.min_count = 0;
   req_t.max_count = 0;
+  req_t.unlocked = true;
+  req_t.recent_cutoff = 0;
   bool r = net_utils::invoke_http_json_rpc("/json_rpc", "get_output_histogram", req_t, resp_t, m_http_client, rpc_timeout);
   m_daemon_rpc_mutex.unlock();
   THROW_WALLET_EXCEPTION_IF(!r, error::no_connection_to_daemon, "get_num_rct_outputs");

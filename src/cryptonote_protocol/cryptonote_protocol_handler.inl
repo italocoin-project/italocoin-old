@@ -1,8 +1,8 @@
 /// @file
-/// @author rfree (current maintainer/user in italocoin.cc project - most of code is from CryptoNote)
+/// @author rfree (current maintainer/user in monero.cc project - most of code is from CryptoNote)
 /// @brief This is the original cryptonote protocol network-events handler, modified by us
 
-// Copyright (c) 2018 The Monero And Italocoin Project
+// Copyright (c) 2014-2018, The Italocoin And Monero Project
 //
 // All rights reserved.
 //
@@ -65,8 +65,7 @@ namespace cryptonote
                                                                                                               m_p2p(p_net_layout),
                                                                                                               m_syncronized_connections_count(0),
                                                                                                               m_synchronized(offline),
-                                                                                                              m_stopping(false),
-                                                                                                              m_initial_popping(true)
+                                                                                                              m_stopping(false)
 
   {
     if(!m_p2p)
@@ -260,9 +259,6 @@ namespace cryptonote
   template<class t_core>
   bool t_cryptonote_protocol_handler<t_core>::process_payload_sync_data(const CORE_SYNC_DATA& hshd, cryptonote_connection_context& context, bool is_inital)
   {
-    if (m_initial_popping)
-      return true;
-
     if(context.m_state == cryptonote_connection_context::state_before_handshake && !is_inital)
       return true;
 
@@ -275,7 +271,7 @@ namespace cryptonote
       const uint8_t version = m_core.get_ideal_hard_fork_version(hshd.current_height - 1);
       if (version >= 6 && version != hshd.top_version)
       {
-        if (version < hshd.top_version)
+        if (version < hshd.top_version && version == m_core.get_ideal_hard_fork_version())
           MCLOG_RED(el::Level::Warning, "global", context << " peer claims higher version that we think (" <<
               (unsigned)hshd.top_version << " for " << (hshd.current_height - 1) << " instead of " << (unsigned)version <<
               ") - we may be forked from the network and a software upgrade may be needed");
@@ -799,7 +795,7 @@ namespace cryptonote
       relay_transactions(arg, context);
     }
 
-    return true;
+    return 1;
   }
   //------------------------------------------------------------------------------------------------------------------------
   template<class t_core>
@@ -976,8 +972,6 @@ skip:
   template<class t_core>
   int t_cryptonote_protocol_handler<t_core>::try_add_next_blocks(cryptonote_connection_context& context)
   {
-    if (m_initial_popping)
-    return 1;
     bool force_next_span = false;
 
     {
@@ -1014,6 +1008,7 @@ skip:
           if (blocks.empty())
           {
             MERROR("Next span has no blocks");
+            m_block_queue.remove_spans(span_connection_id, start_height);
             break;
           }
 
@@ -1021,6 +1016,7 @@ skip:
           if (!parse_and_validate_block_from_blob(blocks.front().block, new_block))
           {
             MERROR("Failed to parse block, but it should already have been parsed");
+            m_block_queue.remove_spans(span_connection_id, start_height);
             break;
           }
           bool parent_known = m_core.have_block(new_block.prev_id);
@@ -1037,6 +1033,7 @@ skip:
               // this can happen if a connection was sicced onto a late span, if it did not have those blocks,
               // since we don't know that at the sic time
               LOG_ERROR_CCONTEXT("Got block with unknown parent which was not requested - querying block hashes");
+              m_block_queue.remove_spans(span_connection_id, start_height);
               context.m_needed_objects.clear();
               context.m_last_response_height = 0;
               goto skip;
@@ -1070,7 +1067,7 @@ skip:
             if (tvc.size() != block_entry.txs.size())
             {
               LOG_ERROR_CCONTEXT("Internal error: tvc.size() != block_entry.txs.size()");
-              return true;
+              return 1;
             }
             std::list<blobdata>::const_iterator it = block_entry.txs.begin();
             for (size_t i = 0; i < tvc.size(); ++i, ++it)
@@ -1081,7 +1078,7 @@ skip:
                   LOG_ERROR_CCONTEXT("transaction verification failed on NOTIFY_RESPONSE_GET_OBJECTS, tx_id = "
                       << epee::string_tools::pod_to_hex(get_blob_hash(*it)) << ", dropping connection");
                   drop_connection(context, false, true);
-                  return true;
+                  return 1;
                 }))
                   LOG_ERROR_CCONTEXT("span connection id not found");
 
@@ -1110,7 +1107,7 @@ skip:
               if (!m_p2p->for_connection(span_connection_id, [&](cryptonote_connection_context& context, nodetool::peerid_type peer_id, uint32_t f)->bool{
                 LOG_PRINT_CCONTEXT_L1("Block verification failed, dropping connection");
                 drop_connection(context, true, true);
-                return true;
+                return 1;
               }))
                 LOG_ERROR_CCONTEXT("span connection id not found");
 
@@ -1129,7 +1126,7 @@ skip:
               if (!m_p2p->for_connection(span_connection_id, [&](cryptonote_connection_context& context, nodetool::peerid_type peer_id, uint32_t f)->bool{
                 LOG_PRINT_CCONTEXT_L1("Block received at sync phase was marked as orphaned, dropping connection");
                 drop_connection(context, true, true);
-                return true;
+                return 1;
               }))
                 LOG_ERROR_CCONTEXT("span connection id not found");
 
@@ -1197,37 +1194,6 @@ skip:
   bool t_cryptonote_protocol_handler<t_core>::on_idle()
   {
     m_idle_peer_kicker.do_call(boost::bind(&t_cryptonote_protocol_handler<t_core>::kick_idle_peers, this));
-	static uint64_t num_popped_blocks = 0;
-    if (m_initial_popping)
-    {
-      while (!m_stopping)
-      {
-        uint64_t top_height;
-        crypto::hash top_id;
-        m_core.get_blockchain_top(top_height, top_id);
-        bool orphan;
-        block top_block;
-        m_core.get_block_by_hash(top_id, top_block, &orphan);
-        const uint64_t ideal_hf_version = m_core.get_ideal_hard_fork_version(top_height);
-        if (ideal_hf_version <= 1 || ideal_hf_version == top_block.major_version)
-        {
-          m_initial_popping = false;
-          MGINFO("Initial popping done, top block: " << top_id << ", top height: " << top_height << ", block version: " << (uint64_t)top_block.major_version);
-          break;
-        }
-        else
-        {
-          if (num_popped_blocks == 0)
-            MGINFO("Current top block " << top_id << " at height " << top_height << " has version " << (uint64_t)top_block.major_version << " which disagrees with the ideal version " << ideal_hf_version);
-          if (num_popped_blocks % 100 == 0)
-            MGINFO("Popping blocks... " << top_height);
-          ++num_popped_blocks;
-          block popped_block;
-          std::vector<transaction> popped_txs;
-          m_core.get_blockchain_storage().get_db().pop_block(popped_block, popped_txs);
-        }
-      }
-    }
     return m_core.on_idle();
   }
   //------------------------------------------------------------------------------------------------------------------------
@@ -1400,13 +1366,13 @@ skip:
           MDEBUG(context << " we have the next span, and it is scheduled, resuming");
           ++context.m_callback_request_count;
           m_p2p->request_callback(context);
-          return 1;
+          return true;
         }
 
         for (size_t n = 0; n < 50; ++n)
         {
           if (m_stopping)
-            return 1;
+            return true;
           boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
         }
       }
@@ -1730,7 +1696,7 @@ skip:
     m_p2p->relay_notify_to_list(NOTIFY_NEW_FLUFFY_BLOCK::ID, fluffyBlob, fluffyConnections);
     m_p2p->relay_notify_to_list(NOTIFY_NEW_BLOCK::ID, fullBlob, fullConnections);
 
-    return 1;
+    return true;
   }
   //------------------------------------------------------------------------------------------------------------------------
   template<class t_core>

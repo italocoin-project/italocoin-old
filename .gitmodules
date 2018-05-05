@@ -1,0 +1,6 @@
+[submodule "external/miniupnp"]
+	path = external/miniupnp
+	url = https://github.com/italocoin-project/miniupnp
+[submodule "external/unbound"]
+	path = external/unbound
+	url = https://github.com/italocoin-project/unbound
