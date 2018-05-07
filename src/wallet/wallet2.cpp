@@ -97,7 +97,7 @@ using namespace cryptonote;
 #define RECENT_OUTPUT_RATIO (0.5) // 50% of outputs are from the recent zone
 #define RECENT_OUTPUT_DAYS (1.8) // last 1.8 day makes up the recent zone (taken from italocoinlink.pdf, Miller et al)
 #define RECENT_OUTPUT_ZONE ((time_t)(RECENT_OUTPUT_DAYS * 86400))
-#define RECENT_OUTPUT_BLOCKS (RECENT_OUTPUT_DAYS * 480)
+#define RECENT_OUTPUT_BLOCKS (RECENT_OUTPUT_DAYS * 720)
 
 #define FEE_ESTIMATE_GRACE_BLOCKS 10 // estimate fee valid for that many blocks
 
@@ -111,7 +111,7 @@ using namespace cryptonote;
 #define MULTISIG_EXPORT_FILE_MAGIC "Italocoin multisig export\001"
 
 #define SEGREGATION_FORK_HEIGHT 1564965
-#define TESTNET_SEGREGATION_FORK_HEIGHT 1000000
+#define TESTNET_SEGREGATION_FORK_HEIGHT 150000
 #define STAGENET_SEGREGATION_FORK_HEIGHT 1000000
 #define SEGREGATION_FORK_VICINITY 1500 /* blocks */
 
@@ -9141,15 +9141,15 @@ uint64_t wallet2::get_daemon_blockchain_target_height(string &err)
 uint64_t wallet2::get_approximate_blockchain_height() const
 {
   // time of v2 fork
-  const time_t fork_time = m_nettype == TESTNET ? 1448285909 : m_nettype == STAGENET ? (time_t)-1/*TODO*/ : 1458748658;
+  const time_t fork_time = m_nettype == TESTNET ? 1523198950 : m_nettype == STAGENET ? (time_t)-1/*TODO*/ : 1523198945;
   // v2 fork block
-  const uint64_t fork_block = m_nettype == TESTNET ? 624634 : m_nettype == STAGENET ? (uint64_t)-1/*TODO*/ : 1009827;
+  const uint64_t fork_block = m_nettype == TESTNET ? 10 : m_nettype == STAGENET ? (uint64_t)-1/*TODO*/ : 5700;
   // avg seconds per block
   const int seconds_per_block = DIFFICULTY_TARGET_V9;
   // Calculated blockchain height
   uint64_t approx_blockchain_height = fork_block + (time(NULL) - fork_time)/seconds_per_block;
   // testnet got some huge rollbacks, so the estimation is way off
-  static const uint64_t approximate_testnet_rolled_back_blocks = 148540;
+  static const uint64_t approximate_testnet_rolled_back_blocks = 0;
   if (m_nettype == TESTNET && approx_blockchain_height > approximate_testnet_rolled_back_blocks)
     approx_blockchain_height -= approximate_testnet_rolled_back_blocks;
   LOG_PRINT_L2("Calculated blockchain height: " << approx_blockchain_height);
@@ -10454,10 +10454,10 @@ uint64_t wallet2::get_segregation_fork_height() const
   {
     // All four ItalocoinPulse domains have DNSSEC on and valid
     static const std::vector<std::string> dns_urls = {
-        "segheights.italocoinpulse.org",
-        "segheights.italocoinpulse.net",
-        "segheights.italocoinpulse.co",
-        "segheights.italocoinpulse.se"
+        "segheights1.italocoin.com",
+        "segheights2.italocoin.com",
+        "segheights3.italocoin.com",
+        "segheights4.italocoin.com"
     };
 
     const uint64_t current_height = get_blockchain_current_height();

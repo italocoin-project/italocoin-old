@@ -179,7 +179,7 @@ int main(int argc, char const * argv[])
     }
 
     // data_dir
-    //   default: e.g. ~/.bitalocoin/ or ~/.bitalocoin/testnet
+    //   default: e.g. ~/.bcitalocoin/ or ~/.bcitalocoin/testnet
     //   if data-dir argument given:
     //     absolute path
     //     relative path: relative to cwd
