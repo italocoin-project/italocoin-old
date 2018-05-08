@@ -96,6 +96,8 @@ static const struct {
   { 7, 5000, 0, 1522800000 },
   // version 8 starts from block 5000. Around 4 or 5 of April
   { 8, 5700, 0, 1523198945 },
+  // Version 9 starts from block 20000. Around 5/12/2018
+  { 9, 20000, 0, 1525910400 },
   
 };
 static const uint64_t mainnet_hard_fork_version_1_till = 2999;
@@ -108,13 +110,13 @@ static const struct {
 } testnet_hard_forks[] = {
   // version 1 from the start of the blockchain
     { 1, 1, 0, 1520965547 },
-
+   { 2, 8, 0, 1520965547 },
   // version 2 starts from block 3000.
-  { 7, 3, 0, 1522235573 },
-  { 8, 6, 0, 1523198945 },
-  { 9, 10, 0, 1523198950 },
+  { 7, 10, 0, 1522235573 },
+  { 8, 15, 0, 1523198945 },
+  { 9, 30, 0, 1523198950 },
 };
-static const uint64_t testnet_hard_fork_version_1_till = 2;
+static const uint64_t testnet_hard_fork_version_1_till = 7;
 
 static const struct {
   uint8_t version;
@@ -2970,7 +2972,8 @@ static uint64_t get_fee_quantization_mask()
 uint64_t Blockchain::get_dynamic_per_kb_fee(uint64_t block_reward, size_t median_block_size, uint8_t version)
 {
   const uint64_t min_block_size = get_min_block_size(version);
-  const uint64_t fee_per_kb_base = version >= 5 ? DYNAMIC_FEE_PER_KB_BASE_FEE_V5 : DYNAMIC_FEE_PER_KB_BASE_FEE;
+  uint64_t fee_per_kb_bases = version >= 5 ? DYNAMIC_FEE_PER_KB_BASE_FEE_V5 : DYNAMIC_FEE_PER_KB_BASE_FEE;
+  const uint64_t fee_per_kb_base = version >= 9 ? DYNAMIC_FEE_PER_KB_BASE_FEE_V9 : fee_per_kb_bases;
 
   if (median_block_size < min_block_size)
     median_block_size = min_block_size;
@@ -4398,7 +4401,7 @@ void Blockchain::cancel()
 }
 
 #if defined(PER_BLOCK_CHECKPOINT)
-static const char expected_block_hashes_hash[] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+static const char expected_block_hashes_hash[] = "05c5f5813a7661498f755a22f8e0b6ad3ef7964dd646f537c923a08328867ab5";
 void Blockchain::load_compiled_in_block_hashes()
 {
   const bool testnet = m_nettype == TESTNET;

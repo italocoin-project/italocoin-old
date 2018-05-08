@@ -114,10 +114,10 @@ Installing a snap is very quick. Snaps are secure. They are isolated with all of
         docker build --build-arg NPROC=1 -t italocoin .
      
         # either run in foreground
-        docker run -it -v /italocoin/chain:/root/.bititalocoin -v /italocoin/wallet:/wallet -p 18080:18080 italocoin
+        docker run -it -v /italocoin/chain:/root/.bcitalocoin -v /italocoin/wallet:/wallet -p 13101:13101 italocoin
 
         # or in background
-        docker run -it -d -v /italocoin/chain:/root/.bititalocoin -v /italocoin/wallet:/wallet -p 18080:18080 italocoin
+        docker run -it -d -v /italocoin/chain:/root/.bcitalocoin -v /italocoin/wallet:/wallet -p 13101:13101 italocoin
 
 Packaging for your favorite distribution would be a welcome contribution!
 
