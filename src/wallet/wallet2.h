@@ -110,7 +110,7 @@ namespace tools
     size_t offset() const { return m_offset; }
     const crypto::hash &genesis() const { return m_genesis; }
     void push_back(const crypto::hash &hash) { if (m_offset == 0 && m_blockchain.empty()) m_genesis = hash; m_blockchain.push_back(hash); }
-    bool is_in_bounds(size_t idx) const { return idx >= m_offset && idx < size(); }
+    bool is_in_bounds(size_t idx) const { return ((idx >= m_offset && idx < size()) || size() == 0); }
     const crypto::hash &operator[](size_t idx) const { return m_blockchain[idx - m_offset]; }
     crypto::hash &operator[](size_t idx) { return m_blockchain[idx - m_offset]; }
     void crop(size_t height) { m_blockchain.resize(height - m_offset); }
@@ -686,6 +686,7 @@ namespace tools
     bool save_multisig_tx(const multisig_tx_set &txs, const std::string &filename);
     std::string save_multisig_tx(const std::vector<pending_tx>& ptx_vector);
     bool save_multisig_tx(const std::vector<pending_tx>& ptx_vector, const std::string &filename);
+	multisig_tx_set make_multisig_tx_set(const std::vector<pending_tx>& ptx_vector) const;
     // load unsigned tx from file and sign it. Takes confirmation callback as argument. Used by the cli wallet
     bool sign_tx(const std::string &unsigned_filename, const std::string &signed_filename, std::vector<wallet2::pending_tx> &ptx, std::function<bool(const unsigned_tx_set&)> accept_func = NULL, bool export_raw = false);
     // sign unsigned tx. Takes unsigned_tx_set as argument. Used by GUI
