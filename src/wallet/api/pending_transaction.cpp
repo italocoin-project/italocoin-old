@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Monero And Italocoin Project
+// Copyright (c) 2014-2018, The Monero And Italocoin Project
 //
 // All rights reserved.
 //
@@ -102,11 +102,12 @@ bool PendingTransactionImpl::commit(const std::string &filename, bool overwrite)
         }
       }
       // Commit tx
-	  else {
+      else {
         auto multisigState = m_wallet.multisig();
         if (multisigState.isMultisig && m_signers.size() < multisigState.threshold) {
             throw runtime_error("Not enough signers to send multisig transaction");
-        } else {
+        }
+
         m_wallet.pauseRefresh();
         while (!m_pending_tx.empty()) {
             auto & ptx = m_pending_tx.back();
@@ -243,4 +244,3 @@ std::vector<std::string> PendingTransactionImpl::signersKeys() const {
 }
 
 namespace Bititalocoin = Italocoin;
-
