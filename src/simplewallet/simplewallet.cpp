@@ -1789,16 +1789,18 @@ bool simple_wallet::set_ask_password(const std::vector<std::string> &args/* = st
 bool simple_wallet::set_unit(const std::vector<std::string> &args/* = std::vector<std::string>()*/)
 {
   const std::string &unit = args[1];
-  unsigned int decimal_point = CRYPTONOTE_DISPLAY_DECIMAL_POINT;
+
+  const int decimalls = m_wallet->use_fork_rules(10, 0) ? CRYPTONOTE_DISPLAY_DECIMAL_POINT_V10: CRYPTONOTE_DISPLAY_DECIMAL_POINT;
+  unsigned int decimal_point = decimalls;
 
   if (unit == "italocoin")
-    decimal_point = CRYPTONOTE_DISPLAY_DECIMAL_POINT;
+    decimal_point = decimalls;
   else if (unit == "millinero")
-    decimal_point = CRYPTONOTE_DISPLAY_DECIMAL_POINT - 3;
+    decimal_point = decimalls - m_wallet->use_fork_rules(10, 0) ? 2 : 3;
   else if (unit == "micronero")
-    decimal_point = CRYPTONOTE_DISPLAY_DECIMAL_POINT - 6;
+    decimal_point = decimalls - m_wallet->use_fork_rules(10, 0) ? 4 : 6;
   else if (unit == "nanonero")
-    decimal_point = CRYPTONOTE_DISPLAY_DECIMAL_POINT - 9;
+    decimal_point = decimalls - m_wallet->use_fork_rules(10, 0) ? 6 : 9;
   else if (unit == "piconero")
     decimal_point = 0;
   else

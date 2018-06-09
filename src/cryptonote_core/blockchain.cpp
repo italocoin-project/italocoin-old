@@ -86,19 +86,21 @@ static const struct {
   uint64_t height;
   uint8_t threshold;
   time_t time;
+  difficulty_type diff_reset_value;
 } mainnet_hard_forks[] = {
   // version 1 from the start of the blockchain
-    { 1, 1, 0, 1520965547 },
+    { 1, 1, 0, 1520965547, 0 },
 
   // version 2 starts from block 3000.
-  { 2, 3000, 0, 1522235573 },
+  { 2, 3000, 0, 1522235573, 0 },
   // version 7 starts from block 5000. Around 4 or 5 of April
-  { 7, 5000, 0, 1522800000 },
+  { 7, 5000, 0, 1522800000, 0 },
   // version 8 starts from block 5000. Around 4 or 5 of April
-  { 8, 5700, 0, 1523198945 },
+  { 8, 5700, 0, 1523198945, 0 },
   // Version 9 starts from block 20000. Around 5/12/2018
-  { 9, 20000, 0, 1525910400 },
+  { 9, 20000, 0, 1525910400, 0 },
   
+  { 10, 36748, 0, 1528538066, 100},
 };
 static const uint64_t mainnet_hard_fork_version_1_till = 2999;
 
@@ -107,14 +109,15 @@ static const struct {
   uint64_t height;
   uint8_t threshold;
   time_t time;
+  difficulty_type diff_reset_value;
 } testnet_hard_forks[] = {
   // version 1 from the start of the blockchain
-    { 1, 1, 0, 1520965547 },
-   { 2, 8, 0, 1520965547 },
+    { 1, 1, 0, 1520965547, 0 },
+   { 2, 8, 0, 1520965547, 0 },
   // version 2 starts from block 3000.
-  { 7, 10, 0, 1522235573 },
-  { 8, 15, 0, 1523198945 },
-  { 9, 30, 0, 1523198950 },
+  { 7, 10, 0, 1522235573, 0 },
+  { 8, 15, 0, 1523198945, 0 },
+  { 9, 30, 0, 1523198950, 0 },
 };
 static const uint64_t testnet_hard_fork_version_1_till = 7;
 
@@ -123,12 +126,13 @@ static const struct {
   uint64_t height;
   uint8_t threshold;
   time_t time;
+  difficulty_type diff_reset_value;
 } stagenet_hard_forks[] = {
   // version 1 from the start of the blockchain
-    { 1, 1, 0, 1 },
+    { 1, 1, 0, 1, 0 },
 
   // version 2 starts from block 3000.
-  { 2, 3000, 0, 1522235573 },
+  { 2, 3000, 0, 1522235573, 0 },
 };
 
 //------------------------------------------------------------------
@@ -346,17 +350,17 @@ bool Blockchain::init(BlockchainDB* db, const network_type nettype, bool offline
   else if (m_nettype == TESTNET)
   {
     for (size_t n = 0; n < sizeof(testnet_hard_forks) / sizeof(testnet_hard_forks[0]); ++n)
-      m_hardfork->add_fork(testnet_hard_forks[n].version, testnet_hard_forks[n].height, testnet_hard_forks[n].threshold, testnet_hard_forks[n].time);
+     m_hardfork->add_fork(testnet_hard_forks[n].version, testnet_hard_forks[n].height, testnet_hard_forks[n].threshold, testnet_hard_forks[n].time, testnet_hard_forks[n].diff_reset_value);
   }
   else if (m_nettype == STAGENET)
   {
     for (size_t n = 0; n < sizeof(stagenet_hard_forks) / sizeof(stagenet_hard_forks[0]); ++n)
-      m_hardfork->add_fork(stagenet_hard_forks[n].version, stagenet_hard_forks[n].height, stagenet_hard_forks[n].threshold, stagenet_hard_forks[n].time);
+      m_hardfork->add_fork(stagenet_hard_forks[n].version, stagenet_hard_forks[n].height, stagenet_hard_forks[n].threshold, stagenet_hard_forks[n].time, stagenet_hard_forks[n].diff_reset_value);
   }
   else
   {
     for (size_t n = 0; n < sizeof(mainnet_hard_forks) / sizeof(mainnet_hard_forks[0]); ++n)
-      m_hardfork->add_fork(mainnet_hard_forks[n].version, mainnet_hard_forks[n].height, mainnet_hard_forks[n].threshold, mainnet_hard_forks[n].time);
+      m_hardfork->add_fork(mainnet_hard_forks[n].version, mainnet_hard_forks[n].height, mainnet_hard_forks[n].threshold, mainnet_hard_forks[n].time, mainnet_hard_forks[n].diff_reset_value);
   }
   m_hardfork->init();
 
@@ -831,8 +835,10 @@ difficulty_type Blockchain::get_difficulty_for_next_block()
     m_difficulties = difficulties;
   }
   size_t target = get_difficulty_target();
-  size_t shize = get_current_hard_fork_version() <= 7 ? next_difficulty(timestamps, difficulties, target) : next_difficulty_v2(timestamps, difficulties, target);
-  difficulty_type diff = get_current_hard_fork_version() <= 8 ? shize : next_difficulty_v7(timestamps, difficulties, target);
+  uint64_t last_diff_reset_height = m_hardfork->get_last_diff_reset_height(height);
+  difficulty_type last_diff_reset_value = m_hardfork->get_last_diff_reset_value(height);
+  size_t shize = get_current_hard_fork_version() <= 7 ? next_difficulty(timestamps, difficulties, target, height, last_diff_reset_height, last_diff_reset_value) : next_difficulty_v2(timestamps, difficulties, target, height, last_diff_reset_height, last_diff_reset_value);
+  difficulty_type diff = get_current_hard_fork_version() <= 8 ? shize : next_difficulty_v7(timestamps, difficulties, target, height, last_diff_reset_height, last_diff_reset_value);
   m_difficulty_for_next_block_top_hash = top_hash;
   m_difficulty_for_next_block = diff;
   return diff;
@@ -1040,8 +1046,11 @@ difficulty_type Blockchain::get_next_difficulty_for_alternative_chain(const std:
   uint64_t shize = get_ideal_hard_fork_version(bei.height) < 2 ? DIFFICULTY_TARGET_V1 : DIFFICULTY_TARGET_V2;
   size_t  target = get_ideal_hard_fork_version(bei.height) <= 8 ? shize : DIFFICULTY_TARGET_V9;
   // calculate the difficulty target for the block and return it
-  size_t shize2 = get_ideal_hard_fork_version(bei.height) <= 7 ? next_difficulty(timestamps, cumulative_difficulties, target) : next_difficulty_v2(timestamps, cumulative_difficulties, target);
-  return get_ideal_hard_fork_version(bei.height) <= 8 ? shize2 : next_difficulty_v7(timestamps, cumulative_difficulties, target);
+  uint64_t last_diff_reset_height = m_hardfork->get_last_diff_reset_height(bei.height);
+  difficulty_type last_diff_reset_value = m_hardfork->get_last_diff_reset_value(bei.height);
+  // calculate the difficulty target for the block and return it
+  size_t shize2 = get_ideal_hard_fork_version(bei.height) <= 7 ? next_difficulty(timestamps, cumulative_difficulties, target, bei.height, last_diff_reset_height, last_diff_reset_value) : next_difficulty_v2(timestamps, cumulative_difficulties, target, bei.height, last_diff_reset_height, last_diff_reset_value);
+  return get_ideal_hard_fork_version(bei.height) <= 8 ? shize2 : next_difficulty_v7(timestamps, cumulative_difficulties, target, bei.height, last_diff_reset_height, last_diff_reset_value);
 }
 //------------------------------------------------------------------
 // This function does a sanity check on basic things that all miner
@@ -3549,7 +3558,9 @@ leave:
   // coins will eventually exceed MONEY_SUPPLY and overflow a uint64. To prevent overflow, cap already_generated_coins
   // at MONEY_SUPPLY. already_generated_coins is only used to compute the block subsidy and MONEY_SUPPLY yields a
   // subsidy of 0 under the base formula and therefore the minimum subsidy >0 in the tail state.
-  already_generated_coins = base_reward < (MONEY_SUPPLY-already_generated_coins) ? already_generated_coins + base_reward : MONEY_SUPPLY;
+  const uint8_t version = get_current_hard_fork_version();
+  const int money_supplies = version <= 9 ? MONEY_SUPPLY : MONEY_SUPPLY_V10;
+  already_generated_coins = base_reward < (money_supplies-already_generated_coins) ? already_generated_coins + base_reward : money_supplies;
   if(m_db->height())
     cumulative_difficulty += m_db->get_block_cumulative_difficulty(m_db->height() - 1);
 

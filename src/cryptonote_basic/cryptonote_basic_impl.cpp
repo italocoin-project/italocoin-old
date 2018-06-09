@@ -92,10 +92,11 @@ namespace cryptonote {
 	const int target = version < 9 ? targets : DIFFICULTY_TARGET_V9;
 	size_t target_minutes1 = version < 2 ? target / 430 : target / 180;
     const int target_minutes = version < 9 ? target_minutes1 : target / 120;
-	
-    const int emission_speed_factor = EMISSION_SPEED_FACTOR_PER_MINUTE - (target_minutes-1);
+	const int speed_fct = version < 10 ? EMISSION_SPEED_FACTOR_PER_MINUTE : EMISSION_SPEED_FACTOR_PER_MINUTE_V10;
+	const int mney_supply = version < 10 ? MONEY_SUPPLY : MONEY_SUPPLY_V10;
+    const int emission_speed_factor = speed_fct - (target_minutes-1);
 
-    uint64_t base_reward = (MONEY_SUPPLY - already_generated_coins) >> emission_speed_factor;
+    uint64_t base_reward = (mney_supply - already_generated_coins) >> emission_speed_factor;
     if (base_reward < FINAL_SUBSIDY_PER_MINUTE*target_minutes)
     {
       base_reward = FINAL_SUBSIDY_PER_MINUTE*target_minutes;

@@ -260,7 +260,7 @@ uint64_t Wallet::amountFromString(const string &amount)
 uint64_t Wallet::amountFromDouble(double amount)
 {
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(CRYPTONOTE_DISPLAY_DECIMAL_POINT) << amount;
+    ss << std::fixed << std::setprecision(m_wallet->use_fork_rules(10, 0) ? CRYPTONOTE_DISPLAY_DECIMAL_POINT_V10 : CRYPTONOTE_DISPLAY_DECIMAL_POINT) << amount;
     return amountFromString(ss.str());
 }
 

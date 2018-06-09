@@ -119,7 +119,16 @@ namespace cryptonote {
     return !carry;
   }
 
-  difficulty_type next_difficulty(std::vector<std::uint64_t> timestamps, std::vector<difficulty_type> cumulative_difficulties, size_t target_seconds) {
+  difficulty_type next_difficulty(std::vector<std::uint64_t> timestamps, std::vector<difficulty_type> cumulative_difficulties, size_t target_seconds,uint64_t height, uint64_t last_diff_reset_height, difficulty_type last_diff_reset_value) {
+	  
+	  bool is_diff_reset = false;
+    if (last_diff_reset_height != 0 && height >= last_diff_reset_height && height - last_diff_reset_height < timestamps.size())
+    {
+      is_diff_reset = true;
+      const uint64_t num_ignored_blocks = timestamps.size() - (height - last_diff_reset_height);
+      timestamps.erase(timestamps.begin(), timestamps.begin() + num_ignored_blocks);
+      cumulative_difficulties.erase(cumulative_difficulties.begin(), cumulative_difficulties.begin() + num_ignored_blocks);
+    }
 
     if(timestamps.size() > DIFFICULTY_WINDOW)
     {
@@ -131,6 +140,10 @@ namespace cryptonote {
     size_t length = timestamps.size();
     assert(length == cumulative_difficulties.size());
     if (length <= 1) {
+		if (is_diff_reset)
+      {
+        return last_diff_reset_value;
+      }
       return 1;
     }
     static_assert(DIFFICULTY_WINDOW >= 2, "Window is too small");
@@ -161,8 +174,16 @@ namespace cryptonote {
     }
     return (low + time_span - 1) / time_span;
   }
-difficulty_type next_difficulty_v2(std::vector<std::uint64_t> timestamps, std::vector<difficulty_type> cumulative_difficulties, size_t target_seconds) {
-
+difficulty_type next_difficulty_v2(std::vector<std::uint64_t> timestamps, std::vector<difficulty_type> cumulative_difficulties, size_t target_seconds, uint64_t height, uint64_t last_diff_reset_height, difficulty_type last_diff_reset_value) {
+    bool is_diff_reset = false;
+    if (last_diff_reset_height != 0 && height >= last_diff_reset_height && height - last_diff_reset_height < timestamps.size())
+    {
+      is_diff_reset = true;
+      const uint64_t num_ignored_blocks = timestamps.size() - (height - last_diff_reset_height);
+      timestamps.erase(timestamps.begin(), timestamps.begin() + num_ignored_blocks);
+      cumulative_difficulties.erase(cumulative_difficulties.begin(), cumulative_difficulties.begin() + num_ignored_blocks);
+    }
+	
     if(timestamps.size() > DIFFICULTY_WINDOW_V1)
     {
       timestamps.resize(DIFFICULTY_WINDOW_V1);
@@ -173,6 +194,10 @@ difficulty_type next_difficulty_v2(std::vector<std::uint64_t> timestamps, std::v
     size_t length = timestamps.size();
     assert(length == cumulative_difficulties.size());
     if (length <= 1) {
+		if (is_diff_reset)
+      {
+        return last_diff_reset_value;
+      }
       return 1;
     }
     static_assert(DIFFICULTY_WINDOW_V1 >= 2, "Window is too small");
@@ -204,14 +229,27 @@ difficulty_type next_difficulty_v2(std::vector<std::uint64_t> timestamps, std::v
 	//return (low + time_span - 1) / time_span;
 return (low + time_span - 1) / time_span;
   }
-   difficulty_type next_difficulty_v7(std::vector<std::uint64_t> timestamps, std::vector<difficulty_type> cumulative_difficulties, size_t target_seconds) {
-
+   difficulty_type next_difficulty_v7(std::vector<std::uint64_t> timestamps, std::vector<difficulty_type> cumulative_difficulties, size_t target_seconds, uint64_t height, uint64_t last_diff_reset_height, difficulty_type last_diff_reset_value) {
+	   
+    bool is_diff_reset = false;
+    if (last_diff_reset_height != 0 && height >= last_diff_reset_height && height - last_diff_reset_height < timestamps.size())
+    {
+      is_diff_reset = true;
+      const uint64_t num_ignored_blocks = timestamps.size() - (height - last_diff_reset_height);
+      timestamps.erase(timestamps.begin(), timestamps.begin() + num_ignored_blocks);
+      cumulative_difficulties.erase(cumulative_difficulties.begin(), cumulative_difficulties.begin() + num_ignored_blocks);
+    }
+	
     const int64_t T = static_cast<int64_t>(target_seconds);
 
     size_t N = DIFFICULTY_WINDOW_V7 - 1;
 
     // Return a difficulty of 1 for first 3 blocks if it's the start of the chain.
     if (timestamps.size() < 4) {
+		if (is_diff_reset)
+      {
+        return last_diff_reset_value;
+      }
       return 1;
     }
     // Otherwise, use a smaller N if the start of the chain is less than N+1.
