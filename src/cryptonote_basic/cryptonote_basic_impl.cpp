@@ -97,9 +97,10 @@ namespace cryptonote {
     const int emission_speed_factor = speed_fct - (target_minutes-1);
 
     uint64_t base_reward = (mney_supply - already_generated_coins) >> emission_speed_factor;
-    if (base_reward < FINAL_SUBSIDY_PER_MINUTE*target_minutes)
+	const int final_subs = version < 10 ? FINAL_SUBSIDY_PER_MINUTE : FINAL_SUBSIDY_PER_MINUTE_V10;
+    if (base_reward < final_subs*target_minutes)
     {
-      base_reward = FINAL_SUBSIDY_PER_MINUTE*target_minutes;
+      base_reward = final_subs*target_minutes;
     }
 
     uint64_t full_reward_zone = get_min_block_size(version);
