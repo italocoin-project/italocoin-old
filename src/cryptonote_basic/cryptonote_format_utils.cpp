@@ -74,7 +74,7 @@ static const uint64_t valid_decomposed_outputs[] = {
   (uint64_t)10000000000000000000ull
 };
 
-static std::atomic<unsigned int> default_decimal_point(CRYPTONOTE_DISPLAY_DECIMAL_POINT);
+static std::atomic<unsigned int> default_decimal_point(CRYPTONOTE_DISPLAY_DECIMAL_POINT_V10);
 
 static std::atomic<uint64_t> tx_hashes_calculated_count(0);
 static std::atomic<uint64_t> tx_hashes_cached_count(0);

@@ -2973,14 +2973,16 @@ void Blockchain::check_ring_signature(const crypto::hash &tx_prefix_hash, const 
   result = crypto::check_ring_signature(tx_prefix_hash, key_image, p_output_keys, sig.data()) ? 1 : 0;
 }
 
+
 //------------------------------------------------------------------
 static uint64_t get_fee_quantization_mask()
 {
   static uint64_t mask = 0;
+  uint8_t cert = CRYPTONOTE_DISPLAY_DECIMAL_POINT_V10;
   if (mask == 0)
   {
     mask = 1;
-    for (size_t n = PER_KB_FEE_QUANTIZATION_DECIMALS; n < CRYPTONOTE_DISPLAY_DECIMAL_POINT; ++n)
+    for (size_t n = PER_KB_FEE_QUANTIZATION_DECIMALS; n < cert; ++n)
       mask *= 10;
   }
   return mask;
